@@ -9,6 +9,14 @@ import datetime as dt
 import os
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
+
+# Load environment variables
+res = load_dotenv()
+if not res:
+    raise ValueError("No .env file found")
+# Read variables from environment
+mcass_data_path = os.getenv('MCASS_DATA_PATH')
 
 #region Local functions
 def remove_bokeh_logo(plot, element):
@@ -54,18 +62,6 @@ def plot_regional_map():
               frame_height=400)
     return mapplot
 
-# Create an impage pane with a default image
-image_pane = pn.pane.PNG('png/16152_test.png')
-
-# Message text pane
-message_text_pane = pn.pane.Markdown("Please click on a basin in the map.",
-        styles={'white-space': 'pre-wrap'})
-#text_output = pn.Card(message_text_pane, title='Snow situation in the selected basin',
-#            width=640)
-
-#image_output = pn.Card(image_pane, title='Snow situation in the selected basin',
-#                       width=640)
-
 # Plot the map
 map_regional = plot_regional_map()
 map_subbasin = plot_regional_map()
@@ -107,7 +103,6 @@ def get_region(x, y):
         clicked = gdf_projected.iloc[clicked_polygon_index]
         #output.object=output.object+f'\nclicked: {clicked}'
         region = clicked['REGION']
-        print(output.object+f'\nRegion: {region}')
         return region
     except Exception as e:
         output.object=f'Error in get_region: \n   {e}'
@@ -138,7 +133,6 @@ def get_subbasin_code(x, y):
         #output.object=output.object+f'\nclicked: {clicked}'
         basin_code = clicked['CODE']
         #basin_name = clicked['BASIN']
-        print(output.object+f'\nBasin code: {basin_code}')
         return basin_code
     except Exception as e:
         output.object=f'Error in get_basin_code: \n   {e}'
@@ -157,11 +151,11 @@ def get_river_name_for_basin(basin_code):
 def read_current_data_for_basin(basin_code):
     try:
         # Read data from file with name <basin_code>_current.txt
-        dfcurrent = pd.read_csv(f'data/{basin_code}_current.txt',
+        filename = os.path.join(mcass_data_path, f'{basin_code}_current.txt')
+        dfcurrent = pd.read_csv(filename,
                                 delimiter='\t')
         # Make sure the Date column is of type datetime
         dfcurrent['date'] = pd.to_datetime(dfcurrent['date'])
-        output.object=output.object+f'\n\n{dfcurrent.head()}'
         return dfcurrent
     except Exception as e:
         return f'Error in read_current_data_for_basin: \n   {e}'
@@ -170,11 +164,11 @@ def read_current_data_for_basin(basin_code):
 def read_climate_data_for_basin(basin_code):
     try:
         # Read data from file with name <basin_code>_climate.txt
-        dfclimate = pd.read_csv(f'data/{basin_code}_climate.txt',
+        filename = os.path.join(mcass_data_path, f'{basin_code}_climate.txt')
+        dfclimate = pd.read_csv(filename,
                                 delimiter='\t')
         # Make sure the Date column is of type datetime
         dfclimate['date'] = pd.to_datetime(dfclimate['date'])
-        output.object=output.object+f'\n\n{dfclimate.head()}'
         return dfclimate
     except Exception as e:
         return f'Error in read_climate_data_for_basin: \n   {e}'
@@ -355,4 +349,4 @@ dashboard = pn.template.BootstrapTemplate(
 )
 dashboard.servable()
 
-# panel serve dashboard.py --show --autoreload --port 5010
+# panel serve mcass-dashboard.py --show --autoreload --port 5010
