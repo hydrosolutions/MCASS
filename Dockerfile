@@ -11,7 +11,7 @@ WORKDIR /app
 ADD . /app
 
 # Add Display to the container. This is needed for the dashboard to work.
-ENV DISPLAY :0
+#ENV DISPLAY :0
 
 # Install any needed packages specified in requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
