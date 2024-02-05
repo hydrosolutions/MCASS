@@ -25,4 +25,4 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 EXPOSE 5006
 
 # Run the command to start the dashboard
-CMD ["panel", "serve", "--allow-websocket-origin=mydomain.com", "mcass-dashboard.py", "--show", "--autoreload"]
+CMD ["panel", "serve", "--allow-websocket-origin=16.171.42.113:5006", "mcass-dashboard.py", "--show", "--autoreload"]
