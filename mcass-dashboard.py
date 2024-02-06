@@ -66,6 +66,10 @@ def plot_regional_map():
 map_regional = plot_regional_map()
 map_subbasin = plot_regional_map()
 
+variable_options = pn.widgets.RadioButtonGroup(
+    options=['HS', 'SWE'],
+    value='HS')
+
 # Toggle map view in a widget
 view_options = pn.widgets.RadioButtonGroup(
     options=['Regional', 'Sub-basin'],
@@ -173,8 +177,10 @@ def read_climate_data_for_basin(basin_code):
     except Exception as e:
         return f'Error in read_climate_data_for_basin: \n   {e}'
 
-@pn.depends(tap_subbasin.param.x, tap_subbasin.param.y)
-def plot_subbasin_data(x, y):
+@pn.depends(variable_options.param.value,
+            tap_subbasin.param.x,
+            tap_subbasin.param.y)
+def plot_subbasin_data(variable, x, y):
     try:
         # Read the basin code
         basin_code = get_subbasin_code(x, y)
@@ -187,33 +193,51 @@ def plot_subbasin_data(x, y):
         # Get river_name for basin
         river_name = get_river_name_for_basin(basin_code)
         # Plot the data using holoviews
-        area_climate = hv.Area(
-            dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='Norm SWE range',
-            kdims=['date']).opts(
-                alpha=0.2, line_width=0, color='black')
-        area_current = hv.Area(
-            dfcurrent, vdims=['Q5_SWE', 'Q95_SWE'], label='Current SWE range',
-            kdims=['date']).opts(
-                alpha=0.2, line_width=0, color='red')
-        curve_climate = hv.Curve(
-            dfclimate, vdims=['Q50_SWE'], label='Norm SWE',
-            kdims=['date']).opts(
-                color='black')
-        curve_current = hv.Curve(
-            dfcurrent, vdims=['Q50_SWE'], label='Current SWE',
-            kdims=['date']).opts(
-                color='red')
+        if variable == 'SWE':
+            area_climate = hv.Area(
+                dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='Norm SWE range',
+                kdims=['date']).opts(
+                    alpha=0.2, line_width=0, color='black')
+            curve_climate = hv.Curve(
+                dfclimate, vdims=['Q50_SWE'], label='Norm SWE',
+                kdims=['date']).opts(
+                color='black', tools=['hover'])
+            curve_current = hv.Curve(
+                dfcurrent, vdims=['Q50_SWE'], label='Current SWE',
+                kdims=['date']).opts(
+                    color='red', tools=['hover'])
+            title_str = f'SWE situation for basin of river {river_name} (gauge {basin_code})'
+            ylabel_str = 'SWE (mm)'
+        else:
+            area_climate = hv.Area(
+                dfclimate, vdims=['Q5_HS', 'Q95_HS'], label='Norm HS range',
+                kdims=['date']).opts(
+                    alpha=0.2, line_width=0, color='black')
+            curve_climate = hv.Curve(
+                dfclimate, vdims=['Q50_HS'], label='Norm HS',
+                kdims=['date']).opts(
+                color='black', tools=['hover'])
+            curve_current = hv.Curve(
+                dfcurrent, vdims=['Q50_HS'], label='Current HS',
+                kdims=['date']).opts(
+                    color='red', tools=['hover'])
+            title_str = f'HS situation for basin of river {river_name} (gauge {basin_code})'
+            ylabel_str = 'HS (mm)'
         # Combine the plots
-        fig = (area_climate * area_current * curve_climate * curve_current).opts(
-            title=f'SWE situation for basin of river {river_name} (gauge {basin_code})',
-            xlabel='Date', ylabel='SWE (mm)', height=400)
-        fig.opts(hooks=[remove_bokeh_logo], responsive=True)
+        fig = (area_climate * curve_climate * curve_current)\
+            .opts(
+            title=title_str,
+            xlabel='Date', ylabel=ylabel_str, height=400,
+            hooks=[remove_bokeh_logo], responsive=True,
+            active_tools=['wheel_zoom'])
         return fig
     except Exception as e:
         return f'Error in plot_basin_data: \n   {e}'
 
-@pn.depends(tap_regional.param.x, tap_regional.param.y)
-def plot_region_data(x, y):
+@pn.depends(variable_options.param.value,
+            tap_regional.param.x,
+            tap_regional.param.y)
+def plot_region_data(variable, x, y):
     try:
         # Read the basin code
         basin_code = get_region(x, y)
@@ -235,44 +259,61 @@ def plot_region_data(x, y):
         elif basin_code == 'SYR_DARYA':
             basin_name = 'Syr Darya'
         # Plot the data using holoviews
-        area_climate = hv.Area(
-            dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='Norm SWE range',
-            kdims=['date']).opts(
-                alpha=0.2, line_width=0, color='black')
-        area_current = hv.Area(
-            dfcurrent, vdims=['Q5_SWE', 'Q95_SWE'], label='Current SWE range',
-            kdims=['date']).opts(
-                alpha=0.2, line_width=0, color='red')
-        curve_climate = hv.Curve(
-            dfclimate, vdims=['Q50_SWE'], label='Norm SWE',
-            kdims=['date']).opts(
-                color='black')
-        curve_current = hv.Curve(
-            dfcurrent, vdims=['Q50_SWE'], label='Current SWE',
-            kdims=['date']).opts(
-                color='red')
+        if variable == 'SWE':
+            area_climate = hv.Area(
+                dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='Norm SWE range',
+                kdims=['date']).opts(
+                    alpha=0.2, line_width=0, color='black')
+            curve_climate = hv.Curve(
+                dfclimate, vdims=['Q50_SWE'], label='Norm SWE',
+                kdims=['date']).opts(
+                    color='black', tools=['hover'])
+            curve_current = hv.Curve(
+                dfcurrent, vdims=['Q50_SWE'], label='Current SWE',
+                kdims=['date']).opts(
+                    color='red', tools=['hover'])
+            title_str = f'SWE situation for the {basin_name} basin'
+            ylabel_str = 'SWE (mm)'
         # Combine the plots
-        fig = (area_climate * area_current * curve_climate * curve_current).opts(
-            title=f'SWE situation for the {basin_name} basin',
-            xlabel='Date', ylabel='SWE (mm)', height=400)
-        fig.opts(hooks=[remove_bokeh_logo], responsive=True)
+        else:
+            area_climate = hv.Area(
+                dfclimate, vdims=['Q5_HS', 'Q95_HS'], label='Norm HS range',
+                kdims=['date']).opts(
+                    alpha=0.2, line_width=0, color='black')
+            curve_climate = hv.Curve(
+                dfclimate, vdims=['Q50_HS'], label='Norm HS',
+                kdims=['date']).opts(
+                    color='black', tools=['hover'])
+            curve_current = hv.Curve(
+                dfcurrent, vdims=['Q50_HS'], label='Current HS',
+                kdims=['date']).opts(
+                    color='red', tools=['hover'])
+            title_str = f'HS situation for the {basin_name} basin'
+            ylabel_str = 'HS (mm)'
+
+        fig = (area_climate * curve_climate * curve_current).opts(
+            title=title_str,
+            ylabel=ylabel_str, xlabel='Date', height=400,
+            hooks=[remove_bokeh_logo], responsive=True,
+            active_tools=['wheel_zoom'])
         return fig
     except Exception as e:
         return f'Error in plot_basin_data: \n   {e}'
 
 @pn.depends(view_options.param.value,
+            variable_options.param.value,
             tap_regional.param.x, tap_regional.param.y,
             tap_subbasin.param.x, tap_subbasin.param.y)
-def get_snow_plot(value, xr, yr, xs, ys):
+def get_snow_plot(value, variable, xr, yr, xs, ys):
     try:
         if value == 'Regional':
             if xr is not None and yr is not None:
-                return plot_region_data(xr, yr)
+                return plot_region_data(variable, xr, yr)
             else:
                 return pn.pane.Str("<b>Please click on a basin.</b>")
         elif value == 'Sub-basin':
             if xs is not None and ys is not None:
-                return plot_subbasin_data(xs, ys)
+                return plot_subbasin_data(variable, xs, ys)
             else:
                 return pn.pane.Markdown("<b>Please click on a basin.</b>")
     except Exception as e:
@@ -307,7 +348,7 @@ def get_map_plot(value):
 # Define text for the dashboard
 text_pane=pn.pane.Markdown(
     """
-    Brought to you via the projects <a href='https://www.hydrosolutions.ch/projects/sapphire-central-asia' target='_blank'>SAPPHIRE Central Asia</a> & <a href='https://www.unifr.ch/geo/cryosphere/en/projects/smd4gc/cromo-adapt.html' target='_blank'>CHROMO-ADAPT</a>, funded by the <a href='https://www.eda.admin.ch/sdc' target='_blank'>Swiss Agency for Development and Cooperation (SDC)</a>, implemented by <a href='https://www.hydrosolutions.ch/' target='_blank'>hydrosolutions</a> and the <a href='https://www.slf.ch/en/' target='_blank'>Swiss Federal Institude for Snow and Avalanche Research (SLF)</a>. Last updated on """ + dt.datetime.now().strftime('%b %d, %Y') + "."
+    Brought to you via the projects <a href='https://www.hydrosolutions.ch/projects/sapphire-central-asia' target='_blank'>SAPPHIRE Central Asia</a> & <a href='https://www.unifr.ch/geo/cryosphere/en/projects/smd4gc/cromo-adapt.html' target='_blank'>CROMO-ADAPT</a>, funded by the <a href='https://www.eda.admin.ch/sdc' target='_blank'>Swiss Agency for Development and Cooperation (SDC)</a>, implemented by <a href='https://www.hydrosolutions.ch/' target='_blank'>hydrosolutions</a> and the <a href='https://www.slf.ch/en/' target='_blank'>Swiss Federal Institude for Snow and Avalanche Research (SLF)</a>. Last updated on """ + dt.datetime.now().strftime('%b %d, %Y') + "."
     )
 
 refs = pn.Column(
@@ -343,6 +384,8 @@ main_layout = pn.Column(
 dashboard = pn.template.BootstrapTemplate(
     title='Snow Situation in Mountainous Central Asia',
     sidebar=[
+        pn.pane.Markdown("<b>Select variable to display:</b>\nHS: Snow depth\nSWE: Snow water equivalent"),
+        variable_options,
         pn.pane.Markdown("<b>Select granularity of view:</b>\nRegional view: Show snow development in a regional basin.\nSub-basin view: Show snow development in a sub-basin."),
         view_options,
         pn.pane.Markdown(""),
