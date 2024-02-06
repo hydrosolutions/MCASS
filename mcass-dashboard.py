@@ -53,7 +53,7 @@ def plot_regional_map():
     # Plot the GeoDataFrame
     mapplot=gdf.hvplot(
         geo=True, tiles='OpenTopoMap',
-        hover_cols=['CODE', 'gauges_RIVER'],
+        hover_cols=['CODE'],
         line_width=1, line_color='black',
         tools=['tap', 'wheel_zoom'],
         alpha=0.7, c='REGION')\
@@ -312,13 +312,16 @@ text_pane=pn.pane.Markdown(
 
 refs = pn.Column(
     pn.pane.Markdown(" "),
-    pn.pane.Markdown("Updated on the " + dt.datetime.now().strftime('%b %d, %Y') + " by:"),
+    pn.pane.Markdown("Updated on the " + dt.datetime.now().strftime('%b %d, %Y') + " by"),
     pn.Row(
         pn.pane.Image(os.path.join('www', 'logo_slf_color.svg'), height=50),
         pn.pane.Image(os.path.join('www', 'hydrosolutionsLogo.jpg'), height=50),
     ),
     pn.pane.Markdown("within the projects"),
-    pn.pane.Image(os.path.join('www', 'sapphire_project_logo.jpg'), height=50),
+    pn.Column(
+        pn.pane.Image(os.path.join('www', 'chromoadapt_logo.png'), height=30),
+        pn.pane.Image(os.path.join('www', 'sapphire_project_logo.jpg'), height=50),
+    ),
     pn.pane.Markdown("funded by"),
     pn.pane.Image(os.path.join('www', 'sdc.jpeg'), height=50),
 )
