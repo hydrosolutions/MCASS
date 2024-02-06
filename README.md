@@ -1,4 +1,4 @@
-![Deployed](https://github.com/hydrosolutions/SAPPHIRE_Forecast_Tools/actions/workflows/docker.yml/badge.svg)
+![Deployed](https://github.com/hydrosolutions/MCASS/actions/workflows/docker.yml/badge.svg)
 
 # MCASS
  Visualization of the current snow water storage situation in mountainous Central Asia
