@@ -1,5 +1,3 @@
-![Deployed](https://github.com/hydrosolutions/MCASS/actions/workflows/docker.yml/badge.svg)
-
 # MCASS
  Visualization of the current snow water storage situation in mountainous Central Asia
 
