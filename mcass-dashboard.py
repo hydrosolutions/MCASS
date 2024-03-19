@@ -289,7 +289,7 @@ def plot_region_data(variable, x, y):
                 kdims=['date']).opts(
                     color='red', tools=['hover'])
             title_str = f'HS situation for the {basin_name} basin'
-            ylabel_str = 'HS (mm)'
+            ylabel_str = 'HS (m)'
 
         fig = (area_climate * curve_climate * curve_current).opts(
             title=title_str,
