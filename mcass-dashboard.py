@@ -222,7 +222,7 @@ def plot_subbasin_data(variable, x, y):
                 kdims=['date']).opts(
                     color='red', tools=['hover'])
             title_str = f'HS situation for basin of river {river_name} (gauge {basin_code})'
-            ylabel_str = 'HS (mm)'
+            ylabel_str = 'HS (m)'
         # Combine the plots
         fig = (area_climate * curve_climate * curve_current)\
             .opts(
