@@ -412,15 +412,15 @@ def plot_subbasin_data(variable, basin):
                 kdims=['date']).opts(
                     alpha=0.2, line_width=0, color='black')
             curve_climate = hv.Curve(
-                dfclimate, vdims=['Q50_SWE'], label='Norm SWE',
+                dfclimate, vdims=['Q50_SWE'], label='Norm',
                 kdims=['date']).opts(
                 color='black', tools=['hover'])
             curve_previous = hv.Curve(
-                dfprevious, vdims=['Q50_SWE'], label='Previous SWE',
+                dfprevious, vdims=['Q50_SWE'], label='Previous year',
                 kdims=['date']).opts(
                     color='green', tools=['hover'], line_dash='dashed')
             curve_current = hv.Curve(
-                dfcurrent, vdims=['Q50_SWE'], label='Current SWE',
+                dfcurrent, vdims=['Q50_SWE'], label='Current year',
                 kdims=['date']).opts(
                     color='red', tools=['hover'])
             title_str = f'SWE situation for basin of river {river_name} (gauge {basin_code})'
@@ -488,15 +488,15 @@ def plot_region_data(variable, basin):
                 kdims=['date']).opts(
                     alpha=0.2, line_width=0, color='black')
             curve_climate = hv.Curve(
-                dfclimate, vdims=['Q50_SWE'], label='Norm SWE',
+                dfclimate, vdims=['Q50_SWE'], label='Norm',
                 kdims=['date']).opts(
                     color='black', tools=['hover'])
             curve_previous = hv.Curve(
-                dfprevious, vdims=['Q50_SWE'], label='Previous SWE',
+                dfprevious, vdims=['Q50_SWE'], label='Previous year',
                 kdims=['date']).opts(
                     color='green', tools=['hover'], line_dash='dashed')
             curve_current = hv.Curve(
-                dfcurrent, vdims=['Q50_SWE'], label='Current SWE',
+                dfcurrent, vdims=['Q50_SWE'], label='Current year',
                 kdims=['date']).opts(
                     color='red', tools=['hover'])
             title_str = f'SWE situation for the {basin_name} basin'
@@ -508,15 +508,15 @@ def plot_region_data(variable, basin):
                 kdims=['date']).opts(
                     alpha=0.2, line_width=0, color='black')
             curve_climate = hv.Curve(
-                dfclimate, vdims=['Q50_HS'], label='Norm HS',
+                dfclimate, vdims=['Q50_HS'], label='Norm',
                 kdims=['date']).opts(
                     color='black', tools=['hover'])
             curve_previous = hv.Curve(
-                dfprevious, vdims=['Q50_HS'], label='Previous HS',
+                dfprevious, vdims=['Q50_HS'], label='Previous year',
                 kdims=['date']).opts(
                     color='green', tools=['hover'], line_dash='dashed')
             curve_current = hv.Curve(
-                dfcurrent, vdims=['Q50_HS'], label='Current HS',
+                dfcurrent, vdims=['Q50_HS'], label='Current year',
                 kdims=['date']).opts(
                     color='red', tools=['hover'])
             title_str = f'HS situation for the {basin_name} basin'
