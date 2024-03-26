@@ -160,3 +160,4 @@ data/
 # Ignore geopackages used during testing
 www/CA-discharge_basins.gpkg
 www/CA-discharge_basins_for_viz.gpkg
+minimum_map_example.py
