@@ -92,6 +92,7 @@ def get_region_selector_names_in_list(gdf):
         list of regional river basins
     """
     gdf_for_names = gdf.sort_values(['REGION'], ascending=[True])
+
     options_list = list(gdf_for_names['REGION'].unique())
     return options_list
 
@@ -225,11 +226,13 @@ def read_previous_year_data_for_basin(basin_code):
     try:
         # Read data from file with name <basin_code>_current.txt
         filename = os.path.join(mcass_data_path, f'{basin_code}_previous.txt')
-        dfcurrent = pd.read_csv(filename,
+        dfprevious = pd.read_csv(filename,
                                 delimiter='\t')
         # Make sure the Date column is of type datetime
-        dfcurrent['date'] = pd.to_datetime(dfcurrent['date'])
-        return dfcurrent
+        dfprevious['date'] = pd.to_datetime(dfprevious['date'])
+        # Add 1 year to the date
+        dfprevious['date'] = dfprevious['date'] + pd.DateOffset(years=1)
+        return dfprevious
     except Exception as e:
         return f'Error in read_previous_year_data_for_basin: \n   {e}'
 
@@ -262,8 +265,8 @@ output = pn.pane.Str("Default message. Prints: Basin code and name upon click on
 
 # Toggle variable in a widget
 variable_options = pn.widgets.RadioButtonGroup(
-    options=['HS', 'SWE'],
-    value='HS',
+    options=['SWE', 'HS'],
+    value='SWE',
     margin=(-10, 5, 5, 10))  # (top, right, bottom, left), default: (10, 5, 10, 5
 
 # Toggle map view in a widget
@@ -300,7 +303,7 @@ def plot_regional_map(selected_basin, view_option): #image_height):
 
     # Plot the GeoDataFrame
     mapplot=gdf.hvplot(
-        geo=True, tiles='OpenTopoMap',
+        geo=True, tiles='CartoLight',
         hover_cols=['label'],
         line_width=1, line_color='black',
         tools=[custom_hover, 'tap', 'wheel_zoom'],
@@ -380,7 +383,7 @@ def update_basin_selection_widget_with_region_selection(view_option):
         basin_selection.value = [regions_list[0]]
     else:
         basin_selection.options = basins_list
-        basin_selection.value = [basins_list[0]]
+        basin_selection.value = [basins_list[37]]
 
 
 
