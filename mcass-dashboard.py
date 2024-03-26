@@ -408,7 +408,7 @@ def plot_subbasin_data(variable, basin):
         # Plot the data using holoviews
         if variable == 'SWE':
             area_climate = hv.Area(
-                dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='Norm SWE range',
+                dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='90%ile range',
                 kdims=['date']).opts(
                     alpha=0.2, line_width=0, color='black')
             curve_climate = hv.Curve(
