@@ -41,7 +41,7 @@ def read_basin_geometry(filepath):
         lambda x: max(x.geoms, key=lambda a: a.area) if x.geom_type == 'MultiPolygon' else x)
 
     # Simplify geometry to reduce file size (tolerance in degrees)
-    gdf['geometry'] = gdf['geometry'].simplify(0.007)
+    gdf['geometry'] = gdf['geometry'].simplify(0.01)
 
     # Make sure all relevant columns are strings
     gdf['REGION'] = gdf['REGION'].astype(str)
@@ -448,7 +448,7 @@ def plot_subbasin_data(variable, basin):
         fig = (area_climate * curve_climate * curve_previous * curve_current)\
             .opts(
             title=title_str,
-            xlabel='Date', ylabel=ylabel_str, height=400,
+            xlabel='Date', ylabel=ylabel_str, height=600,
             hooks=[remove_bokeh_logo], responsive=True,
             active_tools=['wheel_zoom'])
         return fig
@@ -524,7 +524,7 @@ def plot_region_data(variable, basin):
 
         fig = (area_climate * curve_climate * curve_previous * curve_current).opts(
             title=title_str,
-            ylabel=ylabel_str, xlabel='Date', height=400,
+            ylabel=ylabel_str, xlabel='Date', height=600,
             hooks=[remove_bokeh_logo], responsive=True,
             active_tools=['wheel_zoom'])
         return fig
@@ -576,9 +576,10 @@ refs = pn.Column(
 
 main_layout = pn.Column(
     # main_layout[0]
-    pn.Card(get_map_plot,
+    pn.Card(pn.panel(get_map_plot),
             title='Tap a polygon to display the snow storage over time below',
-            sizing_mode='stretch_width'),
+            sizing_mode='stretch_width',
+            collapsible=False),
     # main_layout[1]
     #text_output,
     pn.Card(get_snow_plot,
