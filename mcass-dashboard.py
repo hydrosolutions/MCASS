@@ -294,7 +294,7 @@ tap_subbasin = Tap()
 def plot_regional_map(selected_basin, view_option): #image_height):
     #print("DEBUG: calling plot_regional_map with selected_basin: ", selected_basin)
     # Define the height of the map
-    image_height = 400
+    image_height = 600
 
     # Update the selected column in the GeoDataFrame
     gdf = update_gdf_with_selected_basin(selected_basin, view_option)
@@ -303,7 +303,7 @@ def plot_regional_map(selected_basin, view_option): #image_height):
 
     # Plot the GeoDataFrame
     mapplot=gdf.hvplot(
-        geo=True, tiles='CartoLight',
+        geo=True, tiles='EsriReference',
         hover_cols=['label'],
         line_width=1, line_color='black',
         tools=[custom_hover, 'tap', 'wheel_zoom'],
@@ -418,7 +418,7 @@ def plot_subbasin_data(variable, basin):
             curve_previous = hv.Curve(
                 dfprevious, vdims=['Q50_SWE'], label='Previous year',
                 kdims=['date']).opts(
-                    color='green', tools=['hover'], line_dash='dashed')
+                    color='green', tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_SWE'], label='Current year',
                 kdims=['date']).opts(
@@ -437,7 +437,7 @@ def plot_subbasin_data(variable, basin):
             curve_previous = hv.Curve(
                 dfprevious, vdims=['Q50_HS'], label='Previous HS',
                 kdims=['date']).opts(
-                    color='green', tools=['hover'], line_dash='dashed')
+                    color='green', tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_HS'], label='Current HS',
                 kdims=['date']).opts(
@@ -494,7 +494,7 @@ def plot_region_data(variable, basin):
             curve_previous = hv.Curve(
                 dfprevious, vdims=['Q50_SWE'], label='Previous year',
                 kdims=['date']).opts(
-                    color='green', tools=['hover'], line_dash='dashed')
+                    color='green', tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_SWE'], label='Current year',
                 kdims=['date']).opts(
@@ -514,7 +514,7 @@ def plot_region_data(variable, basin):
             curve_previous = hv.Curve(
                 dfprevious, vdims=['Q50_HS'], label='Previous year',
                 kdims=['date']).opts(
-                    color='green', tools=['hover'], line_dash='dashed')
+                    color='green', tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_HS'], label='Current year',
                 kdims=['date']).opts(
