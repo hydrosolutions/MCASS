@@ -626,20 +626,21 @@ refs = pn.Column(
     pn.pane.Markdown(" "),
     pn.pane.Markdown("Updated on the " + dt.datetime.now().strftime('%b %d, %Y') + " by"),
     pn.Row(
-        pn.pane.Image(os.path.join('www', 'logo_slf_color.svg'), height=50),
-        pn.pane.Image(os.path.join('www', 'hydrosolutionsLogo.jpg'), height=50),
-        #pn.pane.HTML("""
-        #<a href="https://www.hydrosolutions.ch/" target="_blank">
-        #<img src="./www/hydrosolutionsLogo.jpg" alt="Icon" style="width:50px;height:50px;">
-        #</a>""")
+        pn.pane.Image(os.path.join('www', 'logo_slf_color.svg'), height=50,
+                      link_url='https://www.slf.ch/en/'),
+        pn.pane.Image(os.path.join('www', 'hydrosolutionsLogo.jpg'), height=50,
+                      link_url='https://www.hydrosolutions.ch/'),
     ),
     pn.pane.Markdown("within the projects"),
     pn.Column(
-        pn.pane.Image(os.path.join('www', 'chromoadapt_logo.png'), height=30),
-        pn.pane.Image(os.path.join('www', 'sapphire_project_logo.jpg'), height=50),
+        pn.pane.Image(os.path.join('www', 'chromoadapt_logo.png'), height=30,
+                      link_url='https://www.unifr.ch/geo/cryosphere/en/projects/smd4gc/cromo-adapt.html'),
+        pn.pane.Image(os.path.join('www', 'sapphire_project_logo.jpg'), height=50,
+                      link_url='https://www.hydrosolutions.ch/projects/sapphire-central-asia'),
     ),
     pn.pane.Markdown("funded by"),
-    pn.pane.Image(os.path.join('www', 'sdc.jpeg'), height=50),
+    pn.pane.Image(os.path.join('www', 'sdc.jpeg'), height=50,
+                  link_url='https://www.eda.admin.ch/sdc'),
 )
 
 main_layout = pn.Column(
