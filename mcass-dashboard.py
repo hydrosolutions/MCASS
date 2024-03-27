@@ -23,6 +23,22 @@ mcass_data_path = os.getenv('MCASS_DATA_PATH')
 def remove_bokeh_logo(plot, element):
     plot.state.toolbar.logo = None
 
+def read_snow_situation_file(filepath):
+    """
+    Read snow situation from filepath
+
+    Arguments:
+        filepath (str) path to snow situation file
+
+    Return:
+        dataframe
+    """
+    df = pd.read_csv(filepath)
+    # Make sure the Date column is of type datetime
+    df['date'] = pd.to_datetime(df['date'])
+    print(df.head())
+    return df
+
 def read_basin_geometry(filepath):
     """
     Read basin geometry from filepath (geopackage)
@@ -63,6 +79,33 @@ def read_basin_geometry(filepath):
 
     # Sort rows by area_km2 in descending order (plot smallest last)
     gdf = gdf.sort_values('area_km2', ascending=False)
+
+    # Read subbasins snow situation file
+    # Currently, not operational. The file shows snow situation data from end of
+    # March 2024.
+    df = read_snow_situation_file('data/subbasins_merged_data.csv')
+
+    # Merge columns 'swe_threshold' and 'hs_threshold' from df into gdf by 'CODE'
+    gdf = gdf.merge(df[['basin_id', 'swe_threshold', 'hs_threshold']],
+                    left_on='CODE', right_on='basin_id', how='left')
+
+    # Read the regional snow situation file
+    df_regional = read_snow_situation_file('data/regions_merged_data.csv')
+    # Rename the swe and hs threshold columns to avoid conflicts
+    df_regional = df_regional.rename(columns={'swe_threshold': 'swe_threshold_regional',
+                                              'hs_threshold': 'hs_threshold_regional'})
+    # Merge columns 'swe_threshold_regional' and 'hs_threshold_regional' from
+    # df_regional into gdf by 'REGION'.
+    # We need to do a fuzzy merge because the 'REGION' column in gdf contains
+    # the full name of the region, while the 'REGION' column in df_regional
+    # contains the abbreviation of the region.
+    # Split the values in 'REGION' in gdf by '_' and take the first part
+    gdf['REG'] = gdf['REGION'].str.split('_').str[0]
+    gdf = gdf.merge(df_regional[['basin_id', 'swe_threshold_regional', 'hs_threshold_regional']],
+                    left_on='REG', right_on='basin_id', how='left')
+
+    print(gdf.head())
+
     return gdf
 
 def get_basin_selector_names_in_list(gdf):
@@ -290,8 +333,10 @@ tap_regional = Tap()
 tap_subbasin = Tap()
 
 #region Define panes
-@pn.depends(basin_selection.param.value, view_options.param.value)
-def plot_regional_map(selected_basin, view_option): #image_height):
+@pn.depends(basin_selection.param.value,
+            view_options.param.value,
+            variable_options.param.value,)
+def plot_regional_map(selected_basin, view_option, variable_selection): #image_height):
     #print("DEBUG: calling plot_regional_map with selected_basin: ", selected_basin)
     # Define the height of the map
     image_height = 600
@@ -301,17 +346,33 @@ def plot_regional_map(selected_basin, view_option): #image_height):
     # Print gdf where selected == True
     #print("DEBUG: gdf[gdf['selected']==True]: ", gdf[gdf['selected']==True])
 
+    if variable_selection == 'SWE':
+        if view_option == 'Regional':
+            color_column = 'REGION'  # 'swe_threshold_regional'
+            title_str = 'Regional river basins'
+        else:
+            color_column = 'REGION'  # 'swe_threshold'
+            title_str = 'SWE situation in sub-basins'
+    else:
+        if view_option == 'Regional':
+            color_column = 'REGION'  # 'hs_threshold_regional'
+            title_str = 'Regional river basins'
+        else:
+            color_column = 'REGION'  # 'hs_threshold'
+            title_str = 'HS situation in sub-basins'
+
     # Plot the GeoDataFrame
     mapplot=gdf.hvplot(
         geo=True, tiles='EsriReference',
         hover_cols=['label'],
         line_width=1, line_color='black',
         tools=[custom_hover, 'tap', 'wheel_zoom'],
-        alpha=0.7, c='REGION',
+        alpha=0.7, c=color_column,
         legend = True)\
         .opts(active_tools=['tap', 'wheel_zoom'],
               hooks=[remove_bokeh_logo],
               #frame_height=image_height,
+              title=title_str,
               min_height=image_height,
               aspect='equal',
               responsive=True)
@@ -326,6 +387,8 @@ def plot_regional_map(selected_basin, view_option): #image_height):
 
         mapplot.opts(active_tools=['tap', 'wheel_zoom'],
                      min_height=image_height,
+                     hooks=[remove_bokeh_logo],
+                     title=title_str,
                      aspect='equal',
                      responsive=True)
 
@@ -338,9 +401,10 @@ def plot_regional_map(selected_basin, view_option): #image_height):
     return mapplot
 
 @pn.depends(view_options.param.value, basin_selection.param.value,
+            variable_options.param.value,
             tap_subbasin.param.x, tap_subbasin.param.y,
             tap_regional.param.x, tap_regional.param.y)
-def dynamically_update_map(view_option, selected_basin, xs, ys, xr, yr):
+def dynamically_update_map(view_option, selected_basin, variable_selection, xs, ys, xr, yr):
     # Test if view_option is consistent with the basin selection options
     #print("DEBUG: dynamically_update_map with ...")
     #print("       view_option: ", view_option)
@@ -350,7 +414,7 @@ def dynamically_update_map(view_option, selected_basin, xs, ys, xr, yr):
     selected_basin = basin_selection.value
     #print("DEBUG: dynamically_update_map with selected_basin, xs, ys, xr, yr: ", selected_basin, xs, ys, xr, yr)
     # Update the map
-    plot = plot_regional_map(selected_basin, view_option)
+    plot = plot_regional_map(selected_basin, view_option, variable_selection)
     #print("DEBUG: returning plot from dynamically_update_map")
     return plot
 
@@ -562,16 +626,21 @@ refs = pn.Column(
     pn.pane.Markdown(" "),
     pn.pane.Markdown("Updated on the " + dt.datetime.now().strftime('%b %d, %Y') + " by"),
     pn.Row(
-        pn.pane.Image(os.path.join('www', 'logo_slf_color.svg'), height=50),
-        pn.pane.Image(os.path.join('www', 'hydrosolutionsLogo.jpg'), height=50),
+        pn.pane.Image(os.path.join('www', 'logo_slf_color.svg'), height=50,
+                      link_url='https://www.slf.ch/en/'),
+        pn.pane.Image(os.path.join('www', 'hydrosolutionsLogo.jpg'), height=50,
+                      link_url='https://www.hydrosolutions.ch/'),
     ),
     pn.pane.Markdown("within the projects"),
     pn.Column(
-        pn.pane.Image(os.path.join('www', 'chromoadapt_logo.png'), height=30),
-        pn.pane.Image(os.path.join('www', 'sapphire_project_logo.jpg'), height=50),
+        pn.pane.Image(os.path.join('www', 'chromoadapt_logo.png'), height=30,
+                      link_url='https://www.unifr.ch/geo/cryosphere/en/projects/smd4gc/cromo-adapt.html'),
+        pn.pane.Image(os.path.join('www', 'sapphire_project_logo.jpg'), height=50,
+                      link_url='https://www.hydrosolutions.ch/projects/sapphire-central-asia'),
     ),
     pn.pane.Markdown("funded by"),
-    pn.pane.Image(os.path.join('www', 'sdc.jpeg'), height=50),
+    pn.pane.Image(os.path.join('www', 'sdc.jpeg'), height=50,
+                  link_url='https://www.eda.admin.ch/sdc'),
 )
 
 main_layout = pn.Column(
