@@ -161,3 +161,7 @@ data/
 www/CA-discharge_basins.gpkg
 www/CA-discharge_basins_for_viz.gpkg
 minimum_map_example.py
+
+# Ignore z files
+z_data/*
+z_data
