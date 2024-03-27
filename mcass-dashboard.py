@@ -626,7 +626,7 @@ refs = pn.Column(
     pn.pane.Markdown(" "),
     pn.pane.Markdown("Updated on the " + dt.datetime.now().strftime('%b %d, %Y') + " by"),
     pn.Row(
-        pn.pane.Image(os.path.join('www', 'logo_slf_color.svg'), height=50,
+        pn.pane.Image(os.path.join('www', 'logo_slf_color.jpg'), height=50,
                       link_url='https://www.slf.ch/en/'),
         pn.pane.Image(os.path.join('www', 'hydrosolutionsLogo.jpg'), height=50,
                       link_url='https://www.hydrosolutions.ch/'),
