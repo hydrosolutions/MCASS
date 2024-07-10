@@ -261,6 +261,9 @@ def read_current_data_for_basin(basin_code):
                                 delimiter='\t')
         # Make sure the Date column is of type datetime
         dfcurrent['date'] = pd.to_datetime(dfcurrent['date'])
+        # Temporarily filter out future data newer than today - 6 days
+        # TODO: Remove this filter when the data is updated
+        dfcurrent = dfcurrent[dfcurrent['date'] <= dt.datetime.now() - pd.DateOffset(days=6)]
         return dfcurrent
     except Exception as e:
         return f'Error in read_current_data_for_basin: \n   {e}'
