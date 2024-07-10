@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --trusted-host pypi.python.org -r requirements.txt
 
 # Make port 5006 available to the world outside this container
-#EXPOSE 5006
+EXPOSE 5006
 
 # Run the command to start the dashboard
 CMD ["panel", "serve", "--allow-websocket-origin=snowmapper.ch", "mcass-dashboard.py", "--show", "--autoreload"]
