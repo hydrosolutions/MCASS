@@ -263,7 +263,7 @@ def read_current_data_for_basin(basin_code):
         dfcurrent['date'] = pd.to_datetime(dfcurrent['date'])
         # Temporarily filter out future data newer than June 11, 2024
         # TODO: Remove this filter when the data is updated
-        dfcurrent = dfcurrent[dfcurrent['date'] <= '2024-06-11']
+        # dfcurrent = dfcurrent[dfcurrent['date'] <= '2024-06-11']
         return dfcurrent
     except Exception as e:
         return f'Error in read_current_data_for_basin: \n   {e}'
