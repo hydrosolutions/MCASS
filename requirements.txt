@@ -8,3 +8,4 @@ shapely==2.0.2
 Cartopy==0.22.0
 geoviews==1.11.0
 python-dotenv==1.0.1
+fiona==1.9.5
