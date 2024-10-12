@@ -5,6 +5,8 @@ Visualization of the current snow water storage situation in mountainous Central
 
 This repository contains the code to visualize the current snow water storage situation in mountainous Central Asia. The snow data is obtained from the CHROMO-ADAPT Snow Model deployed by [@joelfiddes](https://github.com/joelfiddes/), Swiss Federal Institute of Snow and Avalanche Research (SLF) on an AWS instance. The snow model is an operational version of [TopoPyScale](https://github.com/ArcticSnow/TopoPyScale) which runs the [Factorial Snow Model (FSM)](https://github.com/RichardEssery/FSM).
 
+The deployed version of the app is available here: [snowmapper.ch](https://snowmapper.ch).
+
 
 
 
