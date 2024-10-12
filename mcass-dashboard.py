@@ -19,6 +19,13 @@ if not res:
 # Read variables from environment
 mcass_data_path = os.getenv('MCASS_DATA_PATH')
 
+# Global variables
+# Line colors for the plots
+current_year_color = '#dd1c77'  # 'red'
+previous_year_color = '#2b8cbe'  # 'blue'
+climate_color = 'black'
+climate_range_alpha = 0.1
+
 #region Local functions
 def remove_bokeh_logo(plot, element):
     plot.state.toolbar.logo = None
@@ -36,7 +43,7 @@ def read_snow_situation_file(filepath):
     df = pd.read_csv(filepath)
     # Make sure the Date column is of type datetime
     df['date'] = pd.to_datetime(df['date'])
-    print(df.head())
+    print(f"read_snow_situation_file: df.head: \n{df.columns}\n{df.head()}")
     return df
 
 def read_basin_geometry(filepath):
@@ -261,9 +268,7 @@ def read_current_data_for_basin(basin_code):
                                 delimiter='\t')
         # Make sure the Date column is of type datetime
         dfcurrent['date'] = pd.to_datetime(dfcurrent['date'])
-        # Temporarily filter out future data newer than June 11, 2024
-        # TODO: Remove this filter when the data is updated
-        # dfcurrent = dfcurrent[dfcurrent['date'] <= '2024-06-11']
+        print(f"read_current_data_for_basin: dfcurrent.head: \n{dfcurrent.columns}\n{dfcurrent.tail()}")
         return dfcurrent
     except Exception as e:
         return f'Error in read_current_data_for_basin: \n   {e}'
@@ -311,7 +316,7 @@ output = pn.pane.Str("Default message. Prints: Basin code and name upon click on
 
 # Toggle variable in a widget
 variable_options = pn.widgets.RadioButtonGroup(
-    options=['SWE', 'HS'],
+    options=['SWE', 'HS'],  # No previous year ROF available yet, 'ROF'],
     value='SWE',
     margin=(-10, 5, 5, 10))  # (top, right, bottom, left), default: (10, 5, 10, 5
 
@@ -464,6 +469,9 @@ def plot_subbasin_data(variable, basin):
         basin_code = basin[0].split(' - ')[0]
         # Read the current data for the basin
         dfcurrent = read_current_data_for_basin(basin_code)
+        # Get forecast data for the basin
+        dfforecast = dfcurrent[dfcurrent['FC'] == True]
+        dfcurrent = dfcurrent[dfcurrent['FC'] == False]
         #output.object=f'\n\n{dfcurrent.head()}'
         # Read previous year data for the basin
         dfprevious = read_previous_year_data_for_basin(basin_code)
@@ -477,42 +485,73 @@ def plot_subbasin_data(variable, basin):
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='90%ile range',
                 kdims=['date']).opts(
-                    alpha=0.2, line_width=0, color='black')
+                    alpha=climate_range_alpha, line_width=0, color=climate_color)
             curve_climate = hv.Curve(
                 dfclimate, vdims=['Q50_SWE'], label='Norm',
                 kdims=['date']).opts(
-                color='black', tools=['hover'])
+                color=climate_color, tools=['hover'])
             curve_previous = hv.Curve(
                 dfprevious, vdims=['Q50_SWE'], label='Previous year',
                 kdims=['date']).opts(
-                    color='green', tools=['hover'])
+                    color=previous_year_color, tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_SWE'], label='Current year',
                 kdims=['date']).opts(
-                    color='red', tools=['hover'])
+                    color=current_year_color, tools=['hover'])
+            curve_forecast = hv.Curve(
+                dfforecast, vdims=['Q50_SWE'], label='Current year',
+                kdims=['date']).opts(line_dash='dashed',
+                    color=current_year_color, tools=['hover'])
             title_str = f'SWE situation for basin of river {river_name} (gauge {basin_code})'
             ylabel_str = 'SWE (mm)'
-        else:
+        elif variable == 'HS':
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_HS', 'Q95_HS'], label='Norm HS range',
                 kdims=['date']).opts(
-                    alpha=0.2, line_width=0, color='black')
+                    alpha=climate_range_alpha, line_width=0, color=climate_color)
             curve_climate = hv.Curve(
                 dfclimate, vdims=['Q50_HS'], label='Norm HS',
                 kdims=['date']).opts(
-                color='black', tools=['hover'])
+                color=climate_color, tools=['hover'])
             curve_previous = hv.Curve(
                 dfprevious, vdims=['Q50_HS'], label='Previous HS',
                 kdims=['date']).opts(
-                    color='green', tools=['hover'])
+                    color=previous_year_color, tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_HS'], label='Current HS',
                 kdims=['date']).opts(
-                    color='red', tools=['hover'])
+                    color=current_year_color, tools=['hover'])
+            curve_forecast = hv.Curve(
+                dfforecast, vdims=['Q50_HS'], label='Current year',
+                kdims=['date']).opts(line_dash='dashed',
+                    color=current_year_color, tools=['hover'])
             title_str = f'HS situation for basin of river {river_name} (gauge {basin_code})'
             ylabel_str = 'HS (m)'
+        else:
+            area_climate = hv.Area(
+                dfclimate, vdims=['Q5_ROF', 'Q95_ROF'], label='Norm ROF range',
+                kdims=['date']).opts(
+                    alpha=climate_range_alpha, line_width=0, color=climate_color)
+            curve_climate = hv.Curve(
+                dfclimate, vdims=['Q50_ROF'], label='Norm ROF',
+                kdims=['date']).opts(
+                color=climate_color, tools=['hover'])
+            curve_previous = hv.Curve(
+                dfprevious, vdims=['Q50_ROF'], label='Previous ROF',
+                kdims=['date']).opts(
+                    color=previous_year_color, tools=['hover'])
+            curve_current = hv.Curve(
+                dfcurrent, vdims=['Q50_ROF'], label='Current ROF',
+                kdims=['date']).opts(
+                    color=current_year_color, tools=['hover'])
+            curve_forecast = hv.Curve(
+                dfforecast, vdims=['Q50_ROF'], label='Current year',
+                kdims=['date']).opts(line_dash='dashed',
+                    color=current_year_color, tools=['hover'])
+            title_str = f'ROF situation for basin of river {river_name} (gauge {basin_code})'
+            ylabel_str = 'ROF (mm)'
         # Combine the plots
-        fig = (area_climate * curve_climate * curve_previous * curve_current)\
+        fig = (area_climate * curve_climate * curve_previous * curve_current * curve_forecast)\
             .opts(
             title=title_str,
             xlabel='Date', ylabel=ylabel_str, height=600,
@@ -531,6 +570,9 @@ def plot_region_data(variable, basin):
         basin_code = basin[0].split(' - ')[0]
         # Read the current data for the basin
         dfcurrent = read_current_data_for_basin(basin_code)
+        # Get forecast data for the basin
+        dfforecast = dfcurrent[dfcurrent['FC'] == True]
+        dfcurrent = dfcurrent[dfcurrent['FC'] == False]
         #output.object=f'\n\n{dfcurrent.head()}'
         # Read previous year data for the basin
         dfprevious = read_previous_year_data_for_basin(basin_code)
@@ -553,43 +595,74 @@ def plot_region_data(variable, basin):
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='90%ile range',
                 kdims=['date']).opts(
-                    alpha=0.2, line_width=0, color='black')
+                    alpha=climate_range_alpha, line_width=0, color=climate_color)
             curve_climate = hv.Curve(
                 dfclimate, vdims=['Q50_SWE'], label='Norm',
                 kdims=['date']).opts(
-                    color='black', tools=['hover'])
+                    color=climate_color, tools=['hover'])
             curve_previous = hv.Curve(
                 dfprevious, vdims=['Q50_SWE'], label='Previous year',
                 kdims=['date']).opts(
-                    color='green', tools=['hover'])
+                    color=previous_year_color, tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_SWE'], label='Current year',
                 kdims=['date']).opts(
-                    color='red', tools=['hover'])
+                    color=current_year_color, tools=['hover'])
+            curve_forecast = hv.Curve(
+                dfforecast, vdims=['Q50_SWE'], label='Current year',
+                kdims=['date']).opts(line_dash='dashed',
+                    color=current_year_color, tools=['hover'])
             title_str = f'SWE situation for the {basin_name} basin'
             ylabel_str = 'SWE (mm)'
         # Combine the plots
-        else:
+        elif variable == 'HS':
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_HS', 'Q95_HS'], label='90%ile range',
                 kdims=['date']).opts(
-                    alpha=0.2, line_width=0, color='black')
+                    alpha=climate_range_alpha, line_width=0, color=climate_color)
             curve_climate = hv.Curve(
                 dfclimate, vdims=['Q50_HS'], label='Norm',
                 kdims=['date']).opts(
-                    color='black', tools=['hover'])
+                    color=climate_color, tools=['hover'])
             curve_previous = hv.Curve(
                 dfprevious, vdims=['Q50_HS'], label='Previous year',
                 kdims=['date']).opts(
-                    color='green', tools=['hover'])
+                    color=previous_year_color, tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_HS'], label='Current year',
                 kdims=['date']).opts(
-                    color='red', tools=['hover'])
+                    color=current_year_color, tools=['hover'])
+            curve_forecast = hv.Curve(
+                dfforecast, vdims=['Q50_HS'], label='Current year',
+                kdims=['date']).opts(line_dash='dashed',
+                    color=current_year_color, tools=['hover'])
             title_str = f'HS situation for the {basin_name} basin'
             ylabel_str = 'HS (m)'
+        else:
+            area_climate = hv.Area(
+                dfclimate, vdims=['Q5_ROF', 'Q95_ROF'], label='90%ile range',
+                kdims=['date']).opts(
+                    alpha=climate_range_alpha, line_width=0, color=climate_color)
+            curve_climate = hv.Curve(
+                dfclimate, vdims=['Q50_ROF'], label='Norm',
+                kdims=['date']).opts(
+                    color=climate_color, tools=['hover'])
+            curve_previous = hv.Curve(
+                dfprevious, vdims=['Q50_ROF'], label='Previous year',
+                kdims=['date']).opts(
+                    color=previous_year_color, tools=['hover'])
+            curve_current = hv.Curve(
+                dfcurrent, vdims=['Q50_ROF'], label='Current year',
+                kdims=['date']).opts(
+                    color=current_year_color, tools=['hover'])
+            curve_forecast = hv.Curve(
+                dfforecast, vdims=['Q50_ROF'], label='Current year',
+                kdims=['date']).opts(line_dash='dashed',
+                    color=current_year_color, tools=['hover'])
+            title_str = f'ROF situation for the {basin_name} basin'
+            ylabel_str = 'ROF (mm)'
 
-        fig = (area_climate * curve_climate * curve_previous * curve_current).opts(
+        fig = (area_climate * curve_climate * curve_previous * curve_current * curve_forecast).opts(
             title=title_str,
             ylabel=ylabel_str, xlabel='Date', height=600,
             hooks=[remove_bokeh_logo], responsive=True,
