@@ -736,6 +736,8 @@ main_layout = pn.Column(
 # Create the dashboard
 dashboard = pn.template.BootstrapTemplate(
     title='Snow Situation in Mountainous Central Asia',
+    logo='www/snowmapper_logo_version0.png',
+    favicon='www/snowmapper_logo_version0.png',
     sidebar=[
         pn.pane.Markdown("<b>Select variable to display:</b>\nHS: Snow depth\nSWE: Snow water equivalent"),
         variable_options,
