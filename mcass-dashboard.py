@@ -748,7 +748,7 @@ dashboard = pn.template.BootstrapTemplate(
     logo='www/snowmapper_logo_version0.png',
     favicon='www/snowmapper_logo_version0.png',
     sidebar=[
-        pn.pane.Markdown("<b>Select variable to display:</b>\nHS: Snow depth\nSWE: Snow water equivalent"),
+        pn.pane.Markdown("<b>Select variable to display:</b>\nHS: Snow depth\nSWE: Snow water equivalent\nROF: Runoff from snowmelt"),
         variable_options,
         pn.pane.Markdown("<b>Select granularity of view:</b>\nRegional view: Show snow development in a regional basin.\nSub-basin view: Show snow development in a sub-basin."),
         view_options,
