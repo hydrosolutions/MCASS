@@ -316,7 +316,7 @@ output = pn.pane.Str("Default message. Prints: Basin code and name upon click on
 
 # Toggle variable in a widget
 variable_options = pn.widgets.RadioButtonGroup(
-    options=['SWE', 'HS'],  # No previous year ROF available yet, 'ROF'],
+    options=['SWE', 'HS', 'ROF'],
     value='SWE',
     margin=(-10, 5, 5, 10))  # (top, right, bottom, left), default: (10, 5, 10, 5
 
@@ -361,13 +361,20 @@ def plot_regional_map(selected_basin, view_option, variable_selection): #image_h
         else:
             color_column = 'REGION'  # 'swe_threshold'
             title_str = 'SWE situation in sub-basins'
-    else:
+    elif variable_selection == 'HS':
         if view_option == 'Regional':
             color_column = 'REGION'  # 'hs_threshold_regional'
             title_str = 'Regional river basins'
         else:
             color_column = 'REGION'  # 'hs_threshold'
             title_str = 'HS situation in sub-basins'
+    elif variable_selection == 'ROF':
+        if view_option == 'Regional':
+            color_column = 'REGION'
+            title_str = 'Regional river basins'
+        else:
+            color_column = 'REGION'
+            title_str = 'ROF situation in sub-basins'
 
     # Plot the GeoDataFrame
     mapplot=gdf.hvplot(
@@ -477,11 +484,13 @@ def plot_subbasin_data(variable, basin):
         dfprevious = read_previous_year_data_for_basin(basin_code)
         # Read the climate data for the basin
         dfclimate = read_climate_data_for_basin(basin_code)
+        print(f"plot_subbasin_data: dfclimate.head: \n{dfclimate.columns}\n{dfclimate.head()}")
         #output.object=output.object+f'\n\n{dfclimate.head()}'
         # Get river_name for basin
         river_name = get_river_name_for_basin(basin_code)
         # Plot the data using holoviews
         if variable == 'SWE':
+            print(f"debugging SWE")
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='90%ile range',
                 kdims=['date']).opts(
@@ -505,6 +514,7 @@ def plot_subbasin_data(variable, basin):
             title_str = f'SWE situation for basin of river {river_name} (gauge {basin_code})'
             ylabel_str = 'SWE (mm)'
         elif variable == 'HS':
+            print(f"debugging HS")
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_HS', 'Q95_HS'], label='Norm HS range',
                 kdims=['date']).opts(
@@ -536,10 +546,13 @@ def plot_subbasin_data(variable, basin):
                 dfclimate, vdims=['Q50_ROF'], label='Norm ROF',
                 kdims=['date']).opts(
                 color=climate_color, tools=['hover'])
-            curve_previous = hv.Curve(
-                dfprevious, vdims=['Q50_ROF'], label='Previous ROF',
-                kdims=['date']).opts(
-                    color=previous_year_color, tools=['hover'])
+            # Previous year ROF is not yet available. Uncomment when available
+            #curve_previous = hv.Curve(
+            #    dfprevious, vdims=['Q50_ROF'], label='Previous ROF',
+            #    kdims=['date']).opts(
+            #        color=previous_year_color, tools=['hover'])
+            # Add an empty curve for the previous year
+            curve_previous = hv.Curve([]).opts(color=previous_year_color)
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_ROF'], label='Current ROF',
                 kdims=['date']).opts(
@@ -559,7 +572,7 @@ def plot_subbasin_data(variable, basin):
             active_tools=['wheel_zoom'])
         return fig
     except Exception as e:
-        return f'Error in plot_basin_data: \n   {e}'
+        return f'Error in plot_subbasin_data: \n   {e}'
 
 @pn.depends(variable_options.param.value,
             basin_selection.param.value)
@@ -647,10 +660,11 @@ def plot_region_data(variable, basin):
                 dfclimate, vdims=['Q50_ROF'], label='Norm',
                 kdims=['date']).opts(
                     color=climate_color, tools=['hover'])
-            curve_previous = hv.Curve(
-                dfprevious, vdims=['Q50_ROF'], label='Previous year',
-                kdims=['date']).opts(
-                    color=previous_year_color, tools=['hover'])
+            #curve_previous = hv.Curve(
+            #    dfprevious, vdims=['Q50_ROF'], label='Previous year',
+            #    kdims=['date']).opts(
+            #        color=previous_year_color, tools=['hover'])
+            curve_previous = hv.Curve([]).opts(color=previous_year_color)
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_ROF'], label='Current year',
                 kdims=['date']).opts(
@@ -669,7 +683,7 @@ def plot_region_data(variable, basin):
             active_tools=['wheel_zoom'])
         return fig
     except Exception as e:
-        return f'Error in plot_basin_data: \n   {e}'
+        return f'Error in plot_region_data: \n   {e}'
 
 @pn.depends(view_options.param.value,
             variable_options.param.value,
