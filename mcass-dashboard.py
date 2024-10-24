@@ -484,13 +484,11 @@ def plot_subbasin_data(variable, basin):
         dfprevious = read_previous_year_data_for_basin(basin_code)
         # Read the climate data for the basin
         dfclimate = read_climate_data_for_basin(basin_code)
-        print(f"plot_subbasin_data: dfclimate.head: \n{dfclimate.columns}\n{dfclimate.head()}")
         #output.object=output.object+f'\n\n{dfclimate.head()}'
         # Get river_name for basin
         river_name = get_river_name_for_basin(basin_code)
         # Plot the data using holoviews
         if variable == 'SWE':
-            print(f"debugging SWE")
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_SWE', 'Q95_SWE'], label='90%ile range',
                 kdims=['date']).opts(
@@ -514,7 +512,6 @@ def plot_subbasin_data(variable, basin):
             title_str = f'SWE situation for basin of river {river_name} (gauge {basin_code})'
             ylabel_str = 'SWE (mm)'
         elif variable == 'HS':
-            print(f"debugging HS")
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_HS', 'Q95_HS'], label='Norm HS range',
                 kdims=['date']).opts(
