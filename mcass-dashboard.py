@@ -543,11 +543,10 @@ def plot_subbasin_data(variable, basin):
                 dfclimate, vdims=['Q50_ROF'], label='Norm ROF',
                 kdims=['date']).opts(
                 color=climate_color, tools=['hover'])
-            #curve_previous = hv.Curve(
-            #    dfprevious, vdims=['Q50_ROF'], label='Previous ROF',
-            #    kdims=['date']).opts(
-            #        color=previous_year_color, tools=['hover'])
-            curve_previous = hv.Curve([]).opts(color=previous_year_color)
+            curve_previous = hv.Curve(
+                dfprevious, vdims=['Q50_ROF'], label='Previous ROF',
+                kdims=['date']).opts(
+                    color=previous_year_color, tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_ROF'], label='Current ROF',
                 kdims=['date']).opts(
@@ -558,6 +557,13 @@ def plot_subbasin_data(variable, basin):
                     color=current_year_color, tools=['hover'])
             title_str = f'ROF situation for basin of river {river_name} (gauge {basin_code})'
             ylabel_str = 'ROF (mm)'
+            fig = (area_climate * curve_previous * curve_current * curve_forecast)\
+                .opts(
+                title=title_str,
+                xlabel='Date', ylabel=ylabel_str, height=600,
+                hooks=[remove_bokeh_logo], responsive=True,
+                active_tools=['wheel_zoom'])
+            return fig
         # Combine the plots
         fig = (area_climate * curve_climate * curve_previous * curve_current * curve_forecast)\
             .opts(
@@ -655,11 +661,10 @@ def plot_region_data(variable, basin):
                 dfclimate, vdims=['Q50_ROF'], label='Norm',
                 kdims=['date']).opts(
                     color=climate_color, tools=['hover'])
-            #curve_previous = hv.Curve(
-            #    dfprevious, vdims=['Q50_ROF'], label='Previous year',
-            #    kdims=['date']).opts(
-            #        color=previous_year_color, tools=['hover'])
-            curve_previous = hv.Curve([]).opts(color=previous_year_color)
+            curve_previous = hv.Curve(
+                dfprevious, vdims=['Q50_ROF'], label='Previous year',
+                kdims=['date']).opts(
+                    color=previous_year_color, tools=['hover'])
             curve_current = hv.Curve(
                 dfcurrent, vdims=['Q50_ROF'], label='Current year',
                 kdims=['date']).opts(
@@ -670,6 +675,12 @@ def plot_region_data(variable, basin):
                     color=current_year_color, tools=['hover'])
             title_str = f'ROF situation for the {basin_name} basin'
             ylabel_str = 'ROF (mm)'
+            fig = (area_climate * curve_previous * curve_current * curve_forecast).opts(
+                title=title_str,
+                ylabel=ylabel_str, xlabel='Date', height=600,
+                hooks=[remove_bokeh_logo], responsive=True,
+                active_tools=['wheel_zoom'])
+            return fig
 
         fig = (area_climate * curve_climate * curve_previous * curve_current * curve_forecast).opts(
             title=title_str,
