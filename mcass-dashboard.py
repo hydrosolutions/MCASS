@@ -316,7 +316,7 @@ output = pn.pane.Str("Default message. Prints: Basin code and name upon click on
 
 # Toggle variable in a widget
 variable_options = pn.widgets.RadioButtonGroup(
-    options=['SWE', 'HS', 'ROF'],
+    options=['SWE', 'HS', 'SM'],
     value='SWE',
     margin=(-10, 5, 5, 10))  # (top, right, bottom, left), default: (10, 5, 10, 5
 
@@ -368,13 +368,13 @@ def plot_regional_map(selected_basin, view_option, variable_selection): #image_h
         else:
             color_column = 'REGION'  # 'hs_threshold'
             title_str = 'HS situation in sub-basins'
-    elif variable_selection == 'ROF':
+    elif variable_selection == 'SM':
         if view_option == 'Regional':
             color_column = 'REGION'
             title_str = 'Regional river basins'
         else:
             color_column = 'REGION'
-            title_str = 'ROF situation in sub-basins'
+            title_str = 'Snow mel in sub-basins'
 
     # Plot the GeoDataFrame
     mapplot=gdf.hvplot(
@@ -536,27 +536,27 @@ def plot_subbasin_data(variable, basin):
             ylabel_str = 'HS (m)'
         else:
             area_climate = hv.Area(
-                dfclimate, vdims=['Q5_ROF', 'Q95_ROF'], label='Norm ROF range',
+                dfclimate, vdims=['Q5_ROF', 'Q95_ROF'], label='Norm SM range',
                 kdims=['date']).opts(
                     alpha=climate_range_alpha, line_width=0, color=climate_color)
             curve_climate = hv.Curve(
-                dfclimate, vdims=['Q50_ROF'], label='Norm ROF',
+                dfclimate, vdims=['Q50_ROF'], label='Norm SM',
                 kdims=['date']).opts(
                 color=climate_color, tools=['hover'])
             curve_previous = hv.Curve(
-                dfprevious, vdims=['Q50_ROF'], label='Previous ROF',
+                dfprevious, vdims=['Q50_ROF'], label='Previous SM',
                 kdims=['date']).opts(
                     color=previous_year_color, tools=['hover'])
             curve_current = hv.Curve(
-                dfcurrent, vdims=['Q50_ROF'], label='Current ROF',
+                dfcurrent, vdims=['Q50_ROF'], label='Current SM',
                 kdims=['date']).opts(
                     color=current_year_color, tools=['hover'])
             curve_forecast = hv.Curve(
                 dfforecast, vdims=['Q50_ROF'], label='Current year',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
-            title_str = f'ROF situation for basin of river {river_name} (gauge {basin_code})'
-            ylabel_str = 'ROF (mm)'
+            title_str = f'Melt situation for basin of river {river_name} (gauge {basin_code})'
+            ylabel_str = 'SM (mm)'
             fig = (area_climate * curve_previous * curve_current * curve_forecast)\
                 .opts(
                 title=title_str,
@@ -673,8 +673,8 @@ def plot_region_data(variable, basin):
                 dfforecast, vdims=['Q50_ROF'], label='Current year',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
-            title_str = f'ROF situation for the {basin_name} basin'
-            ylabel_str = 'ROF (mm)'
+            title_str = f'Melt situation for the {basin_name} basin'
+            ylabel_str = 'SM (mm)'
             fig = (area_climate * curve_previous * curve_current * curve_forecast).opts(
                 title=title_str,
                 ylabel=ylabel_str, xlabel='Date', height=600,
@@ -759,7 +759,7 @@ dashboard = pn.template.BootstrapTemplate(
     logo='www/snowmapper_logo_version0.png',
     favicon='www/snowmapper_logo_version0.png',
     sidebar=[
-        pn.pane.Markdown("<b>Select variable to display:</b>\nHS: Snow depth\nSWE: Snow water equivalent\nROF: Runoff from snowmelt"),
+        pn.pane.Markdown("<b>Select variable to display:</b>\nHS: Snow depth\nSWE: Snow water equivalent\SM: Melt at bottom of snow cover"),
         variable_options,
         pn.pane.Markdown("<b>Select granularity of view:</b>\nRegional view: Show snow development in a regional basin.\nSub-basin view: Show snow development in a sub-basin."),
         view_options,
