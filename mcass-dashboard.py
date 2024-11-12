@@ -1,3 +1,8 @@
+# Dashboard for snow situation in Central Asia
+#
+# How to run:
+# panel serve mcass-dashboard.py --show --autoreload --port 5010
+
 import panel as pn
 import geopandas as gpd
 import hvplot.pandas
@@ -11,6 +16,8 @@ import numpy as np
 import pandas as pd
 import bokeh as bk
 from dotenv import load_dotenv
+
+pn.extension(sizing_mode='stretch_width')
 
 # Load environment variables
 res = load_dotenv()
@@ -759,7 +766,7 @@ dashboard = pn.template.BootstrapTemplate(
     logo='www/snowmapper_logo_version0.png',
     favicon='www/snowmapper_logo_version0.png',
     sidebar=[
-        pn.pane.Markdown("<b>Select variable to display:</b>\nHS: Snow depth\nSWE: Snow water equivalent\SM: Melt at bottom of snow cover"),
+        pn.pane.Markdown("<b>Select variable to display:</b>\nHS: Snow depth\nSWE: Snow water equivalent\nSM: Melt at bottom of snow cover"),
         variable_options,
         pn.pane.Markdown("<b>Select granularity of view:</b>\nRegional view: Show snow development in a regional basin.\nSub-basin view: Show snow development in a sub-basin."),
         view_options,
