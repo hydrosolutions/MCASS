@@ -506,7 +506,7 @@ def plot_subbasin_data(variable, basin):
                 kdims=['date']).opts(
                     color=current_year_color, tools=['hover'])
             curve_forecast = hv.Curve(
-                dfforecast, vdims=['Q50_SWE'], label='Current year',
+                dfforecast, vdims=['Q50_SWE'], label='Forecast',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
             title_str = f'SWE situation for basin of river {river_name} (gauge {basin_code})'
@@ -530,7 +530,7 @@ def plot_subbasin_data(variable, basin):
                     color=current_year_color, tools=['hover'])
             curve_forecast = hv.Curve(
                 dfforecast, vdims=['Q50_HS'], label='Current year',
-                kdims=['date']).opts(line_dash='dashed',
+                kdims=['date']).opts(line_dash='dashed', label='Forecast', 
                     color=current_year_color, tools=['hover'])
             title_str = f'HS situation for basin of river {river_name} (gauge {basin_code})'
             ylabel_str = 'HS (m)'
@@ -552,7 +552,7 @@ def plot_subbasin_data(variable, basin):
                 kdims=['date']).opts(
                     color=current_year_color, tools=['hover'])
             curve_forecast = hv.Curve(
-                dfforecast, vdims=['Q50_ROF'], label='Current year',
+                dfforecast, vdims=['Q50_ROF'], label='Forecast',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
             title_str = f'Melt situation for basin of river {river_name} (gauge {basin_code})'
@@ -623,7 +623,7 @@ def plot_region_data(variable, basin):
                 kdims=['date']).opts(
                     color=current_year_color, tools=['hover'])
             curve_forecast = hv.Curve(
-                dfforecast, vdims=['Q50_SWE'], label='Current year',
+                dfforecast, vdims=['Q50_SWE'], label='Forecast',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
             title_str = f'SWE situation for the {basin_name} basin'
@@ -647,7 +647,7 @@ def plot_region_data(variable, basin):
                 kdims=['date']).opts(
                     color=current_year_color, tools=['hover'])
             curve_forecast = hv.Curve(
-                dfforecast, vdims=['Q50_HS'], label='Current year',
+                dfforecast, vdims=['Q50_HS'], label='Forecast',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
             title_str = f'HS situation for the {basin_name} basin'
@@ -670,7 +670,7 @@ def plot_region_data(variable, basin):
                 kdims=['date']).opts(
                     color=current_year_color, tools=['hover'])
             curve_forecast = hv.Curve(
-                dfforecast, vdims=['Q50_ROF'], label='Current year',
+                dfforecast, vdims=['Q50_ROF'], label='Forecast',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
             title_str = f'Melt situation for the {basin_name} basin'
