@@ -381,7 +381,7 @@ def plot_regional_map(selected_basin, view_option, variable_selection): #image_h
             title_str = 'Regional river basins'
         else:
             color_column = 'REGION'
-            title_str = 'Snow mel in sub-basins'
+            title_str = 'Snow melt in sub-basins'
 
     # Plot the GeoDataFrame
     mapplot=gdf.hvplot(
@@ -519,6 +519,11 @@ def plot_subbasin_data(variable, basin):
             title_str = f'SWE situation for basin of river {river_name} (gauge {basin_code})'
             ylabel_str = 'SWE (mm)'
         elif variable == 'HS':
+            # Create an empty hv.curve object
+            #curve_climate = hv.Curve([])
+            #curve_previous = hv.Curve([])
+            #curve_current = hv.Curve([])
+            curve_forecast = hv.Curve([])
             area_climate = hv.Area(
                 dfclimate, vdims=['Q5_HS', 'Q95_HS'], label='Norm HS range',
                 kdims=['date']).opts(
@@ -535,9 +540,11 @@ def plot_subbasin_data(variable, basin):
                 dfcurrent, vdims=['Q50_HS'], label='Current HS',
                 kdims=['date']).opts(
                     color=current_year_color, tools=['hover'])
+            # Print dfforecast
+            print(f"plot_subbasin_data: dfforecast.head: \n{dfforecast.head()}")
             curve_forecast = hv.Curve(
-                dfforecast, vdims=['Q50_HS'], label='Current year',
-                kdims=['date']).opts(line_dash='dashed', label='Forecast', 
+                dfforecast, vdims=['Q50_HS'], label='Forecast',
+                kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
             title_str = f'HS situation for basin of river {river_name} (gauge {basin_code})'
             ylabel_str = 'HS (m)'
@@ -580,7 +587,7 @@ def plot_subbasin_data(variable, basin):
             active_tools=['wheel_zoom'])
         return fig
     except Exception as e:
-        return f'Error in plot_basin_data: \n   {e}'
+        return f'Error in plot_subbasin_data: \n   {e}'
 
 @pn.depends(variable_options.param.value,
             basin_selection.param.value)
