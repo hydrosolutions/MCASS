@@ -282,14 +282,19 @@ def read_current_data_for_basin(basin_code):
 
 def read_previous_year_data_for_basin(basin_code):
     try:
-        # Read data from file with name <basin_code>_current.txt
+        # Read data from file with name <basin_code>_previous.txt
         filename = os.path.join(mcass_data_path, f'{basin_code}_previous.txt')
-        dfprevious = pd.read_csv(filename,
-                                delimiter='\t')
+        dfprevious = pd.read_csv(filename, delimiter='\t')
         # Make sure the Date column is of type datetime
         dfprevious['date'] = pd.to_datetime(dfprevious['date'])
-        # Add 1 year to the date
-        dfprevious['date'] = dfprevious['date'] + pd.DateOffset(years=1)
+        # Read the first date from <basin_code>_current.txt
+        dfcurrent = pd.read_csv(os.path.join(mcass_data_path, f'{basin_code}_current.txt'), delimiter='\t')
+        # Only keep first row
+        dfcurrent = dfcurrent.head(1)
+        dfcurrent['date'] = pd.to_datetime(dfcurrent['date'])
+        # Add the difference in years between the first date in dfcurrent and
+        # the first date in dfprevious to the dates in dfprevious
+        dfprevious['date'] = dfprevious['date'] + pd.DateOffset(years=dfcurrent['date'].dt.year.values[0] - dfprevious['date'].dt.year.values[0])
         return dfprevious
     except Exception as e:
         return f'Error in read_previous_year_data_for_basin: \n   {e}'
@@ -302,6 +307,14 @@ def read_climate_data_for_basin(basin_code):
                                 delimiter='\t')
         # Make sure the Date column is of type datetime
         dfclimate['date'] = pd.to_datetime(dfclimate['date'])
+        # Read the first date from <basin_code>_current.txt
+        dfcurrent = pd.read_csv(os.path.join(mcass_data_path, f'{basin_code}_current.txt'), delimiter='\t')
+        # Only keep first row
+        dfcurrent = dfcurrent.head(1)
+        dfcurrent['date'] = pd.to_datetime(dfcurrent['date'])
+        # Add the difference in years between the first date in dfcurrent and
+        # the first date in dfclimate to the dates in dfclimate
+        dfclimate['date'] = dfclimate['date'] + pd.DateOffset(years=dfcurrent['date'].dt.year.values[0] - dfclimate['date'].dt.year.values[0])
         return dfclimate
     except Exception as e:
         return f'Error in read_climate_data_for_basin: \n   {e}'
