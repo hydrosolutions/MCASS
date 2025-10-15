@@ -66,6 +66,32 @@ def read_basin_geometry(filepath):
     #gdf = gpd.read_file('www/CA-discharge_basins_for_viz.gpkg') # No overlaps
     gdf = gpd.read_file(filepath) # With overlaps
 
+    # Print column names and head of the geodataframe
+    print(f"read_basin_geometry: gdf.head: \n{gdf.columns}\n{gdf.head()}")
+
+    # Print unique values of gauges_COUNTRY
+    print(f"read_basin_geometry: unique values of gauges_COUNTRY: {gdf['gauges_COUNTRY'].unique()}")
+
+    # Drop basins of the country of Kyrgystan or don't have a country reference 
+    gdf = gdf[gdf['gauges_COUNTRY'] != 'KYG']
+    gdf = gdf[gdf['gauges_COUNTRY'] != 'None']
+
+    # Further drop selected basins like 16936
+    gdf = gdf[gdf['CODE'] != '16936']
+
+    # Also drop the river with name "Kulduk"
+    gdf = gdf[gdf['gauges_RIVER'] != 'Kulduk']
+
+    # And drop the rivers with name "Karadarya" and "Chatkal"
+    gdf = gdf[gdf['gauges_RIVER'] != 'Karadarya']
+    
+    # Now we drop transboundary rivers in the south of the Ferghana valley
+    #gdf = gdf[gdf['gauges_RIVER'] != 'Isfara']    
+    gdf = gdf[gdf['CODE'] != '16175']  # River Koksu
+
+    # Drop Kyzylsu West river
+    gdf = gdf[gdf['gauges_RIVER'] != 'Kyzylsu West']
+    
     # Convert Multipolygons to Polygons, keeping the largest polygon
     gdf['geometry'] = gdf['geometry'].apply(
         lambda x: max(x.geoms, key=lambda a: a.area) if x.geom_type == 'MultiPolygon' else x)
@@ -88,9 +114,16 @@ def read_basin_geometry(filepath):
     # Replace gauges_RIVER=='None' with 'Name unknown'
     gdf['gauges_RIVER'] = gdf['gauges_RIVER'].replace('None', '<river name unknown>')
 
-    # Create a column with labels for the basins
-    gdf['label'] = gdf['CODE'] + ' - ' + gdf['gauges_RIVER']
-    gdf['label'] = gdf['gauges_RIVER']
+    # Create a display_name column with river name and basin area
+    gdf['display_name'] = gdf.apply(
+        lambda row: f"{row['gauges_RIVER']} ({int(row['area_km2'])} km²)"
+                    if pd.notna(row['area_km2'])
+                    else row['gauges_RIVER'],
+        axis=1
+    )
+
+    # Create a column with labels for the basins (used for map hover)
+    gdf['label'] = gdf['display_name']
 
     # Sort rows by area_km2 in descending order (plot smallest last)
     gdf = gdf.sort_values('area_km2', ascending=False)
@@ -137,10 +170,10 @@ def get_basin_selector_names_in_list(gdf):
         gdf (geodataframe) basin geometry
 
     Return:
-        list of basin codes and basin names
+        list of display names (river names with basin area, no CODEs)
     """
-    gdf_for_names = gdf.sort_values(['REGION', 'CODE'], ascending=[True, True])
-    options_list = list(gdf_for_names['label'].values)
+    gdf_for_names = gdf.sort_values(['REGION', 'gauges_RIVER'], ascending=[True, True])
+    options_list = list(gdf_for_names['display_name'].values)
     return options_list
 
 def get_region_selector_names_in_list(gdf):
@@ -166,13 +199,13 @@ def update_gdf_with_selected_basin(selected_basin, view_option):
 
     Arguments:
         gdf (geodataframe): GeoDataFrame with basin geometries
-        selected_basin (list): list of the selected basins
+        selected_basin (list): list of the selected basins (display names for sub-basin, region names for regional)
 
     Return:
         geodataframe with updated selected column
     """
-    #print("DEBUG: calling update_gdf_with_selected_basin with selected_basin: ", selected_basin)
-    #print("DEBUG: calling update_gdf_with_selected_basin with view_option: ", view_option)
+    print("DEBUG: calling update_gdf_with_selected_basin with selected_basin: ", selected_basin)
+    print("DEBUG: calling update_gdf_with_selected_basin with view_option: ", view_option)
     try:
         if selected_basin is not None and len(selected_basin) > 0:
             if view_option == 'Regional':
@@ -183,8 +216,11 @@ def update_gdf_with_selected_basin(selected_basin, view_option):
             else:
                 # Set all basins to False
                 gdf['selected'] = False
-                # Set the selected basin to True only if it is not empty
-                gdf.loc[gdf['label'] == selected_basin[0], 'selected'] = True
+                # Convert display name to CODE for matching
+                basin_code = display_name_to_basin_code.get(selected_basin[0])
+                if basin_code:
+                    # Set the selected basin to True only if it is not empty
+                    gdf.loc[gdf['CODE'] == basin_code, 'selected'] = True
         return gdf
     except Exception as e:
         print(f'Error in update_gdf_with_selected_basin: \n   {e}')
@@ -229,10 +265,10 @@ def get_subbasin_code_from_tap(x, y):
         # Get the polygon with the minimum distance
         clicked = gdf_projected.iloc[clicked_polygon_index]
         #output.object=output.object+f'\nclicked: {clicked}'
-        #print("DEBUG: clicked['label']: ", clicked['label'])
-        basin_code = clicked['label']
-        #basin_name = clicked['BASIN']
-        return basin_code
+        #print("DEBUG: clicked['display_name']: ", clicked['display_name'])
+        # Return the display name (river name with basin area)
+        display_name = clicked['display_name']
+        return display_name
     return None
 
 def get_region_from_tap(x, y):
@@ -337,6 +373,10 @@ gdf = read_basin_geometry(filepath)
 
 basins_list = get_basin_selector_names_in_list(gdf)
 regions_list = get_region_selector_names_in_list(gdf)
+
+# Create mapping dictionaries for CODE <-> display name conversion
+basin_code_to_display_name = dict(zip(gdf['CODE'], gdf['display_name']))
+display_name_to_basin_code = dict(zip(gdf['display_name'], gdf['CODE']))
 
 # Create a StaticText widget
 basin_code_widget = pn.widgets.StaticText(name='Basin name', value='')
@@ -499,9 +539,8 @@ def update_basin_selection_widget_with_region_selection(view_option):
             basin_selection.param.value)
 def plot_subbasin_data(variable, basin):
     try:
-        # Read the basin code
-        #basin_code = get_subbasin_code(x, y)
-        basin_code = basin[0].split(' - ')[0]
+        # Read the basin code from display name
+        basin_code = display_name_to_basin_code.get(basin[0])
         # Read the current data for the basin
         dfcurrent = read_current_data_for_basin(basin_code)
         # Get forecast data for the basin
