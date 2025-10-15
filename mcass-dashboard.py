@@ -50,7 +50,7 @@ def read_snow_situation_file(filepath):
     df = pd.read_csv(filepath)
     # Make sure the Date column is of type datetime
     df['date'] = pd.to_datetime(df['date'])
-    print(f"read_snow_situation_file: df.head: \n{df.columns}\n{df.head()}")
+    # print(f"read_snow_situation_file: df.head: \n{df.columns}\n{df.head()}")
     return df
 
 def read_basin_geometry(filepath):
@@ -90,33 +90,39 @@ def read_basin_geometry(filepath):
 
     # Create a column with labels for the basins
     gdf['label'] = gdf['CODE'] + ' - ' + gdf['gauges_RIVER']
+    gdf['label'] = gdf['gauges_RIVER']
 
     # Sort rows by area_km2 in descending order (plot smallest last)
     gdf = gdf.sort_values('area_km2', ascending=False)
 
-    # Read subbasins snow situation file
-    # Currently, not operational. The file shows snow situation data from end of
-    # March 2024.
-    df = read_snow_situation_file('data/subbasins_merged_data.csv')
 
-    # Merge columns 'swe_threshold' and 'hs_threshold' from df into gdf by 'CODE'
-    gdf = gdf.merge(df[['basin_id', 'swe_threshold', 'hs_threshold']],
-                    left_on='CODE', right_on='basin_id', how='left')
+    # Only merge subbasins_merged_data.csv if it exists and contains current year data
+    subbasins_file = 'data/subbasins_merged_data.csv'
+    if os.path.exists(subbasins_file):
+        try:
+            df = read_snow_situation_file(subbasins_file)
+            # Check if current year is present in the data
+            current_year = dt.datetime.now().year
+            if (df['date'].dt.year == current_year).any():
+                gdf = gdf.merge(df[['basin_id', 'swe_threshold', 'hs_threshold']],
+                                left_on='CODE', right_on='basin_id', how='left')
+        except Exception as e:
+            print(f"Warning: Could not merge {subbasins_file}: {e}")
 
-    # Read the regional snow situation file
-    df_regional = read_snow_situation_file('data/regions_merged_data.csv')
-    # Rename the swe and hs threshold columns to avoid conflicts
-    df_regional = df_regional.rename(columns={'swe_threshold': 'swe_threshold_regional',
-                                              'hs_threshold': 'hs_threshold_regional'})
-    # Merge columns 'swe_threshold_regional' and 'hs_threshold_regional' from
-    # df_regional into gdf by 'REGION'.
-    # We need to do a fuzzy merge because the 'REGION' column in gdf contains
-    # the full name of the region, while the 'REGION' column in df_regional
-    # contains the abbreviation of the region.
-    # Split the values in 'REGION' in gdf by '_' and take the first part
-    gdf['REG'] = gdf['REGION'].str.split('_').str[0]
-    gdf = gdf.merge(df_regional[['basin_id', 'swe_threshold_regional', 'hs_threshold_regional']],
-                    left_on='REG', right_on='basin_id', how='left')
+    # Only merge regions_merged_data.csv if it exists and contains current year data
+    regions_file = 'data/regions_merged_data.csv'
+    if os.path.exists(regions_file):
+        try:
+            df_regional = read_snow_situation_file(regions_file)
+            current_year = dt.datetime.now().year
+            if (df_regional['date'].dt.year == current_year).any():
+                df_regional = df_regional.rename(columns={'swe_threshold': 'swe_threshold_regional',
+                                                          'hs_threshold': 'hs_threshold_regional'})
+                gdf['REG'] = gdf['REGION'].str.split('_').str[0]
+                gdf = gdf.merge(df_regional[['basin_id', 'swe_threshold_regional', 'hs_threshold_regional']],
+                                left_on='REG', right_on='basin_id', how='left')
+        except Exception as e:
+            print(f"Warning: Could not merge {regions_file}: {e}")
 
     print(gdf.head())
 
@@ -275,7 +281,7 @@ def read_current_data_for_basin(basin_code):
                                 delimiter='\t')
         # Make sure the Date column is of type datetime
         dfcurrent['date'] = pd.to_datetime(dfcurrent['date'])
-        print(f"read_current_data_for_basin: dfcurrent.head: \n{dfcurrent.columns}\n{dfcurrent.tail()}")
+        #print(f"read_current_data_for_basin: dfcurrent.head: \n{dfcurrent.columns}\n{dfcurrent.head()}")
         return dfcurrent
     except Exception as e:
         return f'Error in read_current_data_for_basin: \n   {e}'
@@ -295,6 +301,7 @@ def read_previous_year_data_for_basin(basin_code):
         # Add the difference in years between the first date in dfcurrent and
         # the first date in dfprevious to the dates in dfprevious
         dfprevious['date'] = dfprevious['date'] + pd.DateOffset(years=dfcurrent['date'].dt.year.values[0] - dfprevious['date'].dt.year.values[0])
+        print(f"read_previous_year_data_for_basin: dfprevious.head: \n{dfprevious.columns}\n{dfprevious.head()}")
         return dfprevious
     except Exception as e:
         return f'Error in read_previous_year_data_for_basin: \n   {e}'
@@ -315,6 +322,7 @@ def read_climate_data_for_basin(basin_code):
         # Add the difference in years between the first date in dfcurrent and
         # the first date in dfclimate to the dates in dfclimate
         dfclimate['date'] = dfclimate['date'] + pd.DateOffset(years=dfcurrent['date'].dt.year.values[0] - dfclimate['date'].dt.year.values[0])
+        print(f"read_climate_data_for_basin: dfclimate.head: \n{dfclimate.columns}\n{dfclimate.head()}")
         return dfclimate
     except Exception as e:
         return f'Error in read_climate_data_for_basin: \n   {e}'
@@ -331,8 +339,8 @@ basins_list = get_basin_selector_names_in_list(gdf)
 regions_list = get_region_selector_names_in_list(gdf)
 
 # Create a StaticText widget
-basin_code_widget = pn.widgets.StaticText(name='Basin Code', value='')
-output = pn.pane.Str("Default message. Prints: Basin code and name upon click on a basin.")
+basin_code_widget = pn.widgets.StaticText(name='Basin name', value='')
+output = pn.pane.Str("Default message. Prints: Basin name upon click on a basin.")
 
 # Toggle variable in a widget
 variable_options = pn.widgets.RadioButtonGroup(
@@ -529,7 +537,7 @@ def plot_subbasin_data(variable, basin):
                 dfforecast, vdims=['Q50_SWE'], label='Forecast',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
-            title_str = f'SWE situation for basin of river {river_name} (gauge {basin_code})'
+            title_str = f'SWE situation for basin of river {river_name}'
             ylabel_str = 'SWE (mm)'
         elif variable == 'HS':
             # Create an empty hv.curve object
@@ -559,7 +567,7 @@ def plot_subbasin_data(variable, basin):
                 dfforecast, vdims=['Q50_HS'], label='Forecast',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
-            title_str = f'HS situation for basin of river {river_name} (gauge {basin_code})'
+            title_str = f'HS situation for basin of river {river_name}'
             ylabel_str = 'HS (m)'
         else:
             area_climate = hv.Area(
@@ -582,7 +590,7 @@ def plot_subbasin_data(variable, basin):
                 dfforecast, vdims=['Q50_ROF'], label='Forecast',
                 kdims=['date']).opts(line_dash='dashed',
                     color=current_year_color, tools=['hover'])
-            title_str = f'Melt situation for basin of river {river_name} (gauge {basin_code})'
+            title_str = f'Melt situation for basin of river {river_name}'
             ylabel_str = 'SM (mm)'
             fig = (area_climate * curve_previous * curve_current * curve_forecast)\
                 .opts(
@@ -611,14 +619,17 @@ def plot_region_data(variable, basin):
         basin_code = basin[0].split(' - ')[0]
         # Read the current data for the basin
         dfcurrent = read_current_data_for_basin(basin_code)
+        print(f"current data for basin {basin_code}: dfcurrent.head: \n{dfcurrent.columns}\n{dfcurrent.head()}")
         # Get forecast data for the basin
         dfforecast = dfcurrent[dfcurrent['FC'] == True]
         dfcurrent = dfcurrent[dfcurrent['FC'] == False]
         #output.object=f'\n\n{dfcurrent.head()}'
         # Read previous year data for the basin
         dfprevious = read_previous_year_data_for_basin(basin_code)
+        print(f"previous year data for basin {basin_code}: dfprevious.head: \n{dfprevious.columns}\n{dfprevious.head()}")
         # Read the climate data for the basin
         dfclimate = read_climate_data_for_basin(basin_code)
+        print(f"climate data for basin {basin_code}: dfclimate.head: \n{dfclimate.columns}\n{dfclimate.head()}")
         #output.object=output.object+f'\n\n{dfclimate.head()}'
         # Adapt the name of the river basin for the title
         if basin_code == 'AMU_DARYA':
@@ -790,7 +801,7 @@ dashboard = pn.template.BootstrapTemplate(
         variable_options,
         pn.pane.Markdown("<b>Select granularity of view:</b>\nRegional view: Show snow development in a regional basin.\nSub-basin view: Show snow development in a sub-basin."),
         view_options,
-        pn.pane.Markdown("<b>Search for sub-basin by hydropost code:</b>"),
+        pn.pane.Markdown("<b>Search for sub-basin by river name:</b>"),
         basin_selection,
         pn.pane.Markdown(""),
         refs],
