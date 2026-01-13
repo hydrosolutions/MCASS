@@ -10,6 +10,12 @@ Interactive dashboard for visualizing snow water storage in mountainous Central 
 
 This dashboard visualizes snow water storage data from the [snowmapperForecast](https://github.com/joelfiddes/snowmapperForecast) model, an operational version of [TopoPyScale](https://github.com/ArcticSnow/TopoPyScale) running the [Factorial Snow Model (FSM)](https://github.com/RichardEssery/FSM). The model is deployed by [@joelfiddes](https://github.com/joelfiddes/) at the Swiss Federal Institute for Snow and Avalanche Research (SLF).
 
+## Maintenance Status
+🟡 **Maintenance Mode**  
+
+This project has concluded. Security updates are provided as needed.
+For questions, please [open an issue](../../issues).
+
 ## Data Format
 
 The dashboard expects two CSV files per basin in the data directory:
